@@ -27,9 +27,57 @@ The recommendation can be summarized as follows:
 - **Trefethen–Bau:** learn linear algebra through numerical linear algebra, with matrix decompositions and projections as central computational objects.
 - **Golub–Van Loan:** use the major numerical-linear-algebra reference when a broader or deeper algorithmic treatment is needed.
 
+## Additional numerical-methods books referenced in our discussion
+
+These were not part of the reconstructed Paleologo trio, but they were explicitly brought into the same discussion and belong in `strang`.
+
+### Forman S. Acton — *Numerical Methods That Work*
+
+Full citation:
+
+> Forman S. Acton, *Numerical Methods That Work*. New York: Harper & Row, 1970. Reissued with a new preface and additional problems by the Mathematical Association of America, 1990, 549 pp. ISBN 0-88385-450-3 / 978-0-88385-450-1.
+
+Repository notes:
+
+- [Acton book notes](../books/acton/README.md)
+
+Acton is especially useful for numerical judgment: cancellation, scaling, roots, interpolation, quadrature, ODEs, eigenvalues, approximation, singularities, extrapolation, and the difference between choosing the right strategy and merely optimizing a tactic.
+
+Authoritative catalog/publisher record:
+
+- https://bookstore.ams.org/SPEC/2
+
+### David Kincaid & Ward Cheney — *Numerical Analysis: Mathematics of Scientific Computing*
+
+Full citation:
+
+> David Kincaid and Ward Cheney, *Numerical Analysis: Mathematics of Scientific Computing*, 3rd ed. American Mathematical Society, 2002, 788 pp. ISBN 978-0-8218-4788-6.
+
+Repository notes:
+
+- [Kincaid–Cheney book notes](../books/kincaid-cheney/README.md)
+
+This is the broader numerical-analysis reference already tied into the repository: computer arithmetic and conditioning, nonlinear equations, linear systems, eigenproblems, approximation, quadrature, ODEs, PDEs, linear programming, and optimization.
+
+Author/book site:
+
+- https://web.ma.utexas.edu/CNA/NA3/
+
+### James Ward Brown & Ruel V. Churchill — *Complex Variables and Applications*
+
+This was referenced only to resolve the remembered “Churchill / Ward” name collision; it is not one of the Paleologo numerical-methods books.
+
+Current-edition citation used for the bibliographic record:
+
+> James Ward Brown and Ruel V. Churchill, *Complex Variables and Applications*, 9th ed. New York: McGraw-Hill Education, 2014. ISBN 978-1-259-07277-2.
+
+Publisher record:
+
+- https://www.mheducation.co.uk/complex-variables-and-applications-9781259072772-emea
+
 ## Redistribution result
 
-None of the three has been found under a license that clearly permits this repository to republish book chapters or PDFs.
+None of the three Paleologo books has been found under a license that clearly permits this repository to republish book chapters or PDFs.
 
 ### Cheney & Light
 
@@ -84,10 +132,12 @@ Good material includes:
 
 Avoid copying substantial prose, figures, tables, exercise sets, or chapter PDFs unless an explicit license or written permission covers that use.
 
-## How the three fit together
+## How the core numerical books fit together
 
 - **Cheney–Light:** approximation as a mathematical subject — interpolation, projections, positive-definite functions, kernels, reconstruction, ridge functions, splines, wavelets.
 - **Trefethen–Bau:** compact conceptual numerical linear algebra — QR, least squares, conditioning and stability, eigenvalues, SVD, Krylov and iterative methods.
 - **Golub–Van Loan:** deep reference treatment — matrix kernels, finite precision, structured systems, orthogonalization, least squares, eigenproblems, SVD, sparse/large-scale methods, tensors.
+- **Acton:** practical numerical judgment and failure modes across many classical methods.
+- **Kincaid–Cheney:** broad numerical-analysis spine connecting arithmetic, equations, approximation, integration, differential equations, and optimization.
 
-That combination gives one approximation-theory book, one compact numerical-linear-algebra book, and one comprehensive matrix-computation reference.
+The first three are the reconstructed Paleologo set. Acton and Kincaid–Cheney are separate references that were also brought into the numerical-methods discussion.
