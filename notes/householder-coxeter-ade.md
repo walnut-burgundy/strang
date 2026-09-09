@@ -27,7 +27,7 @@ Trefethen & Bau use these reflections constructively: choose the reflecting hype
 
 A generic sequence of Householder reflectors is not automatically a Coxeter system.
 
-For two reflections with normals meeting at angle `θ`, their product is a rotation through `2θ`. If `θ = π/m`, then the product has order `m`, giving the Coxeter relation
+For two reflections with normals meeting at angle `θ`, their product is a rotation through `2θ` in the plane spanned by the normals. If `θ = π/m`, then the product has order `m`, giving the Coxeter relation
 
 `(sᵢ sⱼ)^m = 1`.
 
@@ -35,29 +35,27 @@ This is the direct bridge from metric geometry of reflecting hyperplanes to the 
 
 ## Reflection groups, Weyl groups, ADE
 
-Useful containment picture:
+The finite Euclidean hierarchy is:
 
-`Householder reflection`
+`finite real reflection groups = finite Coxeter groups`
 
-`→ real reflection groups`
+`crystallographic finite reflection groups = Weyl groups`
 
-`→ finite Coxeter groups`
+`irreducible simply-laced Weyl groups = A, D, E`
 
-`→ crystallographic finite Coxeter groups = Weyl groups`
+A Householder reflector is one concrete Euclidean reflection; an arbitrary collection of Householder reflectors need not generate a finite group.
 
-`→ simply-laced Weyl groups = ADE types`
-
-The last steps add structure rather than merely renaming the same object. A Coxeter diagram records pairwise orders; Dynkin data also retains root-length information needed by Lie theory.
+The later steps add structure rather than merely renaming the same object. A Coxeter diagram records pairwise orders; Dynkin data also retains root-length information needed by Lie theory.
 
 ## Lacing
 
-For crystallographic root systems:
+For adjacent simple roots in a crystallographic root system:
 
 - single edge: equal root lengths, `m = 3`;
 - double edge: two root lengths, `m = 4`;
 - triple edge: two root lengths, `m = 6`.
 
-Simply-laced means only single edges, hence ADE.
+Simply-laced means only single edges; the irreducible finite crystallographic simply-laced types are ADE.
 
 ## Where infinity enters in ordinary Euclidean reflection geometry
 
