@@ -110,6 +110,8 @@ rank_revelation
 
 That is enough to connect geometric candidate generation to numerical reliability without turning the planner into an encyclopedia of matrix algorithms.
 
+The companion type note records the semantic structures the planner should consume before these numerical questions are asked. In particular, it should not flatten named spaces, complex/projective structure, metric data, orientation, Hermitian structure, or rank evidence into anonymous arrays and then try to infer them back.
+
 ## What to record from an implementation
 
 Prefer numerical evidence tied to the problem:
@@ -127,6 +129,8 @@ In particular, do not judge Householder QR mainly by entrywise agreement with on
 
 ## Related notes
 
+- [`type-directed-numerical-linear-algebra.md`](type-directed-numerical-linear-algebra.md)
+- [`complex-projective-type-system.md`](complex-projective-type-system.md)
 - [`trefethen-bau-complex-change-of-basis.md`](trefethen-bau-complex-change-of-basis.md)
 - [`householder-coxeter-ade.md`](householder-coxeter-ade.md)
 - [`conditioning-scaling-and-range.md`](conditioning-scaling-and-range.md)
