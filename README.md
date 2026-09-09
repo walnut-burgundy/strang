@@ -22,6 +22,10 @@ For every book:
 - [Golub & Van Loan — *Matrix Computations*](books/golub-van-loan/README.md)
 - [Acton — *Numerical Methods That Work*](books/acton/README.md)
 
+## Related notes
+
+- [Wegert's *Complex Beauties* — numerical-analysis notes](notes/wegert-complex-beauties-numerical-analysis.md) — phase portraits as diagnostics for approximation, rational filters, finite differences, spectral methods, series convergence, Padé approximation, and special functions.
+
 ## Cross-cutting notes
 
 The recurring subjects to extract across books are not just algorithms but numerical behavior:
