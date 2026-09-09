@@ -8,6 +8,7 @@ Authorized public material:
 
 - Publisher page and full table of contents: https://www.press.jhu.edu/books/title/10678/matrix-computations
 - Cornell course material by Charles Van Loan: https://www.cs.cornell.edu/courses/cs621/
+- Authors' standalone fourth-edition bibliography (66 pp.): https://bpb-us-e1.wpmucdn.com/blogs.cornell.edu/dist/c/9924/files/2021/11/GVL4_Bib.pdf
 
 **Mirror status: link only.** The current edition is commercially published by Johns Hopkins University Press. No open redistribution license for the complete book was located. Public course notes and publisher material may be linked; do not infer that course distribution of selected chapters grants public redistribution rights.
 
@@ -69,12 +70,15 @@ Treats displacement structure, structured rank, Kronecker products, tensor unfol
 
 Van Loan's Cornell teaching emphasizes concrete matrix-operation identities: matrix-vector multiplication as column combinations, diagonal multiplication as row/column scaling, and avoiding explicit construction of diagonal or rank-one matrices. The broader principle is to compute the requested action directly instead of manufacturing an intermediate object simply because the algebra permits it.
 
-## Bibliographic leads
+## Bibliography work
 
-The publisher page identifies extensive global references and literature pointers. A complete bibliography-author inventory still needs to be transcribed from an authorized copy/back matter.
+The authors publish the **fourth-edition master bibliography as a separate 66-page supplement**, so we can use the right edition rather than substituting an older bibliography.
 
-Important names already directly tied to topics in the book include **Householder, Givens, Schur, Gershgorin, Cholesky, Lanczos, Arnoldi, Jacobi, Davidson, Krylov, Francis**, and the many researchers behind QR, SVD, conjugate gradients, multigrid, pseudospectra, structured matrices, and tensor methods.
+- [Fourth-edition bibliography source/audit](bibliography.md)
+- [Stability, scaling, conditioning, and precision index](stability-scaling-index.md) — pulls together the bibliography's literature on backward error, scaling, condition estimation, mixed precision, underflow/roundoff, and iterative refinement. This is directly relevant to removing the Holomorphic zoom clamp for the right numerical reasons.
+
+The full 66-page citation corpus is still being normalized. Its source, scope, and partial-progress status are recorded explicitly; it is not being represented as complete until every entry has been preserved.
 
 ## Thanks
 
-Thanks to **Gene H. Golub** and **Charles F. Van Loan** for building a reference that treats matrix computation as both mathematics and craft. Thanks to every author in its unusually rich literature trail. The long-term goal of this directory is to preserve that trail explicitly, not reduce decades of work to anonymous algorithm names.
+Thanks to **Gene H. Golub** and **Charles F. Van Loan** for building a reference that treats matrix computation as both mathematics and craft. Thanks to every author in its unusually rich literature trail. As the 66-page bibliography is normalized, its contributor index will be used to build the same explicit per-book thanks ledger already completed for Trefethen–Bau.
