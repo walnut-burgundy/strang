@@ -1,6 +1,6 @@
 # Trefethen & Bau — Numerical Linear Algebra
 
-Source notes on Lloyd N. Trefethen and David Bau III, **Numerical Linear Algebra**, with emphasis on the book's organization and the approximation-theoretic view of Krylov methods.
+Source notes on Lloyd N. Trefethen and David Bau III, **Numerical Linear Algebra**, with emphasis on the book's organization, its conditioning/stability framework, and the approximation-theoretic view of Krylov methods.
 
 ## Primary source
 
@@ -10,6 +10,7 @@ Source notes on Lloyd N. Trefethen and David Bau III, **Numerical Linear Algebra
   - SIAM back matter / notes: https://epubs.siam.org/doi/pdf/10.1137/1.9780898719574.bm
 - Lloyd N. Trefethen and David Bau III, **Numerical Linear Algebra: Twenty-Fifth Anniversary Edition**, SIAM, 2022. ISBN 978-1-61197-715-8; eISBN 978-1-61197-716-5.
   - DOI: https://doi.org/10.1137/1.9781611977165
+  - Part III, *Conditioning and Stability*: https://doi.org/10.1137/1.9781611977165.ch3
 
 Originating pointer supplied with these notes:
 
@@ -25,7 +26,7 @@ Trefethen describes the book as aiming for **beauty, depth of insight, and brevi
 
 The important structural choice is the ordering. The book develops orthogonality, the SVD, projectors, and QR near the beginning. **QR factorization is Lecture 7; Gaussian elimination is not introduced until Lecture 20.** Thus direct elimination is not allowed to become the conceptual definition of numerical linear algebra.
 
-That ordering makes orthogonality and approximation recurring ideas rather than isolated techniques.
+That ordering makes orthogonality, conditioning, stability, and approximation recurring ideas rather than isolated techniques.
 
 ## Lecture map
 
@@ -86,6 +87,251 @@ That ordering makes orthogonality and approximation recurring ideas rather than 
 38. Conjugate Gradients
 39. Biorthogonalization Methods
 40. Preconditioning
+
+## Conditioning and stability — working notes
+
+Part III is not merely a detour about floating-point arithmetic. It supplies the framework used to decide whether a numerical answer is bad because the **problem itself is sensitive** or because the **algorithm needlessly amplified error**.
+
+### Conditioning belongs to the problem
+
+Think of a mathematical problem as a map
+
+```text
+f : data → solution.
+```
+
+A condition number measures how strongly the exact solution can change when the exact input data are changed slightly. In relative terms the local picture is
+
+```text
+relative change in solution
+--------------------------------  ≈  κ
+relative change in data
+```
+
+for the worst small perturbation direction.
+
+Thus conditioning is present before an algorithm is chosen. An ill-conditioned problem has nearby data with substantially different exact answers. No numerical method can manufacture information that the data do not determine robustly.
+
+For an invertible matrix in the 2-norm,
+
+```text
+κ(A) = ||A||₂ ||A⁻¹||₂
+     = σ_max(A) / σ_min(A).
+```
+
+The SVD therefore turns matrix conditioning into geometry: a matrix is ill-conditioned when it stretches some directions much more than others, equivalently when its smallest singular value is small relative to its largest.
+
+A useful rule of thumb is that a condition number around `10^k` can put roughly `k` decimal digits at risk. This is only a scale estimate, not a guarantee that exactly that many digits will be lost in every instance.
+
+### Floating point supplies small local perturbations
+
+Lecture 13 introduces the standard floating-point model: elementary operations behave like exact operations followed by a small relative perturbation, on the scale of machine precision `ε_machine` (away from exceptional cases such as overflow/underflow).
+
+The important analytical move is not to count rounding errors indiscriminately. It is to ask what mathematical problem the computed answer actually solves.
+
+### Forward error and backward error answer different questions
+
+**Forward error** asks:
+
+```text
+How far is the computed answer from the exact answer to the original data?
+```
+
+**Backward error** asks:
+
+```text
+How much would the input data have to change
+so that the computed answer became exactly correct?
+```
+
+Backward error is often the more revealing quantity. A result can have a large forward error while having a tiny backward error when the underlying problem is ill-conditioned.
+
+This produces the central diagnostic separation:
+
+```text
+large forward error
+    │
+    ├── the problem may be ill-conditioned
+    │
+    └── the algorithm may be unstable
+```
+
+One should not blame an algorithm merely because the forward answer is inaccurate.
+
+### Backward stability
+
+A backward-stable algorithm returns the exact answer to a nearby problem, with the required perturbation in the input on the scale of rounding error:
+
+```text
+computed answer = f(data + δdata)
+
+||δdata|| / ||data|| = O(ε_machine).
+```
+
+This is powerful because it separates the algorithmic question from the conditioning question. Once the algorithm has been shown backward stable, ordinary perturbation analysis of the mathematical problem tells us what forward accuracy is possible.
+
+The key estimate developed in Lecture 15 is, schematically,
+
+```text
+relative forward error = O(κ · ε_machine)
+```
+
+for a backward-stable algorithm applied to a problem with condition number `κ`.
+
+That relation is one of the central organizing ideas of numerical analysis:
+
+```text
+floating-point perturbation
+          │
+          ▼
+backward error ≈ ε_machine
+          │
+          ▼
+condition number κ of the problem
+          │
+          ▼
+forward error ≈ κ ε_machine
+```
+
+### Why backward analysis is better than blindly accumulating roundoff
+
+A direct forward analysis tries to follow every rounding error through every intermediate operation. This can produce complicated bounds that obscure cancellations and structure.
+
+Backward error analysis instead tries to reinterpret the whole computation as an exact computation on slightly perturbed data. When this succeeds, the remaining amplification is exactly the sensitivity already inherent in the mathematical problem.
+
+This is especially important in matrix algorithms, where intermediate quantities may look inaccurate even though the final factorization or solution has a very small residual.
+
+### Householder QR: inaccurate factors can still give an excellent factorization
+
+Lecture 16 uses Householder triangularization as the main backward-error example. The computed factors satisfy a relation of the form
+
+```text
+Q̃ R̃ = A + δA,
+
+||δA|| / ||A|| = O(ε_machine).
+```
+
+Thus Householder QR is backward stable as a factorization of `A`.
+
+A subtle point is that `Q̃` and `R̃` individually need not be close to some preselected exact `Q` and `R`. The map from `A` to particular factors can itself be ill-conditioned. Large forward errors in the individual factors therefore do **not** imply instability.
+
+What matters for backward stability is that their product reconstructs a matrix extremely close to the input matrix. Errors in the two factors can be strongly correlated and cancel in the product.
+
+This is an important general lesson: **do not judge a factorization algorithm solely by entrywise errors in intermediate factors. Check the residual / backward error.**
+
+### Back substitution is another backward-stable piece
+
+Lecture 17 analyzes solving an upper-triangular system by back substitution. The computed solution can be interpreted as the exact solution of a nearby triangular system,
+
+```text
+(R + δR) x̃ = b,
+
+||δR|| / ||R|| = O(ε_machine)
+```
+
+(up to dimension-dependent constants in the usual fixed-dimension asymptotic notation).
+
+This matters compositionally. A linear solve based on
+
+```text
+A
+ ↓ Householder QR
+Q R
+ ↓ apply Q*
+y
+ ↓ back substitution
+x
+```
+
+is built from stable pieces. Combining backward stability with the conditioning of `Ax = b` gives the familiar forward-error scale
+
+```text
+||x̃ - x|| / ||x|| = O(κ(A) ε_machine).
+```
+
+An inaccurate answer for a highly ill-conditioned `A` can therefore be exactly what a good algorithm should be expected to produce.
+
+### Least squares makes the distinction more subtle
+
+Lecture 18 emphasizes that “the condition number of least squares” is not one number until we specify both:
+
+- which data are perturbed (`A`, `b`, or both), and
+- which output is being judged (the coefficient vector `x` or the fitted vector `y = Ax`).
+
+For full-rank least squares,
+
+```text
+min_x ||b - Ax||₂,
+```
+
+three geometric quantities recur:
+
+- `κ = κ(A)`;
+- `θ`, the angle measuring how far `b` lies from `range(A)`, with `tan θ` related to residual size relative to fitted-vector size;
+- a scaling parameter often denoted `η`, comparing `||A|| ||x||` with `||Ax||`.
+
+For sensitivity of the coefficient vector `x` to perturbations in `A`, the bound contains terms with scales
+
+```text
+κ
+```
+
+and
+
+```text
+κ² tan(θ) / η.
+```
+
+So least-squares conditioning can lie on scales ranging from roughly `κ` to roughly `κ²`, depending on the geometry of the fit. A close fit (`θ` small) can make the underlying coefficient problem much better conditioned than the normal equations would suggest.
+
+### Why the normal equations are dangerous
+
+The normal-equations method solves
+
+```text
+A* A x = A* b.
+```
+
+In the 2-norm,
+
+```text
+κ(A* A) = κ(A)².
+```
+
+This is the crucial defect. Even if Cholesky (or another solver for the normal equations) is stable **for the system it is given**, forming and solving the normal equations has transformed the least-squares problem into one whose matrix condition number is squared.
+
+For some least-squares instances the original problem is already conditioned on the `κ²` scale, so this does not necessarily cost more than the problem itself demands. But for important cases—especially ill-conditioned problems with close fits—the original least-squares problem can have sensitivity closer to `κ` while the normal equations expose the computation to `κ²` amplification.
+
+Hence the important distinction:
+
+```text
+stable solution of the normal equations
+        ≠
+stable general-purpose solution of the original least-squares problem.
+```
+
+Lecture 19 therefore treats the normal equations as unstable as a general-purpose least-squares algorithm.
+
+### QR and SVD are the safer general-purpose least-squares routes
+
+Householder QR avoids squaring the condition number and gives a backward-stable least-squares method. The SVD also gives a stable method and makes near-rank-deficiency explicit through the singular values.
+
+A straightforward modified Gram-Schmidt least-squares implementation that explicitly relies on the computed `Q` being accurately orthogonal can be unstable because loss of orthogonality matters. Trefethen and Bau also show that reformulating the computation—rather than simply treating “Gram-Schmidt” as one indivisible algorithm—can restore stability. The exact computational organization matters.
+
+### Stability is a property of an algorithm over a problem class
+
+A numerically questionable algorithm may work perfectly on one lucky matrix. Conversely, a backward-stable algorithm can give few correct digits on an ill-conditioned matrix.
+
+So a single successful or unsuccessful numerical example is not, by itself, a stability theorem. The correct questions are:
+
+```text
+1. How sensitive is this mathematical problem?
+2. What nearby problem did this computation actually solve?
+3. Is the required backward perturbation O(ε_machine)?
+4. Does the observed forward error match κ × backward_error?
+```
+
+This is a useful diagnostic template well beyond linear algebra.
 
 ## The approximation-theoretic thread
 
@@ -168,7 +414,12 @@ That work explicitly connects Green functions and polynomial approximation in th
 - least squares: Lectures 11, 18–19
 - conditioning: Lectures 12, 18
 - floating point: Lecture 13
-- stability: Lectures 14–17, 19, 22
+- forward/backward error and stability: Lectures 14–15
+- backward error analysis: Lecture 15
+- Householder QR stability: Lecture 16
+- back-substitution stability: Lecture 17
+- least-squares conditioning: Lecture 18
+- least-squares algorithm stability / normal equations: Lecture 19
 - Gaussian elimination: Lectures 20–22
 - Cholesky: Lecture 23
 - eigenvalues / QR algorithm: Lectures 24–30
