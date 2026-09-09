@@ -57,12 +57,12 @@ Moves to large-scale problems where direct factorization is too expensive or unn
 - Analyze growth of intermediates, not just final exact formulas.
 - Treat preconditioning as a change of representation designed to make the numerical problem easier without changing the desired solution.
 
-## Bibliographic and acknowledgment work
+## Bibliography, acknowledgments, and thanks
 
-The SIAM back matter contains notes and bibliography and should be mined as bibliographic facts without copying protected exposition. The acknowledgments in the public front matter should likewise be converted into a credited-name record.
+The 1997 source trail has now been extracted from SIAM's public front/back matter:
 
-A historical line explicitly associated with this book and its subject includes **Gene Golub, Jim Wilkinson, Cleve Moler, Pete Stewart, and Joe Oliger**; Trefethen has publicly described exposure to Golub, Wilkinson, Moler and the Stanford numerical-analysis environment, and his thesis work with Oliger. These names belong in the intellectual ancestry rather than disappearing behind the phrase 'standard numerical linear algebra.'
+- [Complete 1997 bibliography](bibliography.md) — all bibliography entries from pp. 343–352, with the three printed `et al.` entries expanded to full contributor lists.
+- [Acknowledgments ledger](acknowledgments.md) — every person explicitly named in the book's acknowledgments, plus collectively credited groups and the dedication.
+- [Thanks](thanks.md) — an explicit author/editor/translator and acknowledgment-contributor thank-you list.
 
-## Thanks
-
-Thanks to **Lloyd N. Trefethen** and **David Bau III** for making numerical linear algebra unusually short without making it shallow. Thanks also to the numerical analysts, teachers, and authors they cite and acknowledge. As the bibliography is transcribed, every recoverable author should be credited by name.
+The next bibliographic step for this book is not to re-transcribe the same references; it is to connect individual lecture notes to the bibliography entries they actually depend on.
