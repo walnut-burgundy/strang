@@ -7,9 +7,10 @@ Bibliographic facts may be copied. Protected explanatory prose, annotations, exe
 ## Core books
 
 - Acton, Forman S. *Numerical Methods That Work*. New York: Harper & Row, 1970. Reissued with new preface and additional problems by the Mathematical Association of America, 1990. ISBN 0-88385-450-3 / 978-0-88385-450-1.
-- Golub, Gene H., and Charles F. Van Loan. *Matrix Computations*. 4th ed. Johns Hopkins University Press, 2013. ISBN 978-1-4214-0794-4.
+- Cheney, Ward, and Will Light. *A Course in Approximation Theory*. Graduate Studies in Mathematics 101. American Mathematical Society, 2009; originally published by Brooks/Cole, 2000. ISBN 978-0-8218-4798-5; eBook ISBN 978-1-4704-1165-7.
+- Golub, Gene H., and Charles F. Van Loan. *Matrix Computations*. 4th ed. Johns Hopkins University Press, 2013. ISBN 978-1-4214-0794-4. DOI: 10.56021/9781421407944.
 - Kincaid, David, and Ward Cheney. *Numerical Analysis: Mathematics of Scientific Computing*. 3rd ed. American Mathematical Society, © 2002. ISBN 978-0-8218-4788-6.
-- Trefethen, Lloyd N., and David Bau III. *Numerical Linear Algebra*. SIAM, 1997. ISBN 978-0-89871-361-9. 25th-anniversary edition, SIAM, 2022, ISBN 978-1-61197-715-8.
+- Trefethen, Lloyd N., and David Bau III. *Numerical Linear Algebra*. SIAM, 1997. ISBN 978-0-89871-361-9. DOI: 10.1137/1.9780898719574. 25th-anniversary edition, SIAM, 2022, ISBN 978-1-61197-715-8.
 
 ## Numerical linear algebra and matrix analysis leads already identified
 

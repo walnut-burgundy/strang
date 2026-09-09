@@ -18,6 +18,7 @@ For every book:
 ## Initial books
 
 - [Kincaid & Cheney — *Numerical Analysis: Mathematics of Scientific Computing*](books/kincaid-cheney/README.md)
+- [Cheney & Light — *A Course in Approximation Theory*](books/cheney-light/README.md)
 - [Trefethen & Bau — *Numerical Linear Algebra*](books/trefethen-bau/README.md)
 - [Golub & Van Loan — *Matrix Computations*](books/golub-van-loan/README.md)
 - [Acton — *Numerical Methods That Work*](books/acton/README.md)
@@ -25,6 +26,7 @@ For every book:
 ## Related notes
 
 - [Conditioning, scaling, and artificial range limits](notes/conditioning-scaling-and-range.md) — distinguish intrinsic conditioning from bad scaling, unstable algorithms, and inadequate numeric formats; directly applicable to viewport zoom.
+- [Paleologo numerical-methods books](notes/paleologo-numerical-methods-books.md) — identification of Cheney–Light, Trefethen–Bau, and Golub–Van Loan; why they were recommended; and the current link-versus-mirror copyright check.
 - [Trefethen–Bau numerical-linear-algebra notes](notes/trefethen-bau-numerical-linear-algebra.md)
 - [Trefethen–Bau complex change of basis](notes/trefethen-bau-complex-change-of-basis.md)
 - [QR factorization flags](notes/qr-factorization-flags.md)
