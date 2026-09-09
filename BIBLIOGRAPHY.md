@@ -12,6 +12,12 @@ Bibliographic facts may be copied. Protected explanatory prose, annotations, exe
 - Kincaid, David, and Ward Cheney. *Numerical Analysis: Mathematics of Scientific Computing*. 3rd ed. American Mathematical Society, © 2002. ISBN 978-0-8218-4788-6.
 - Trefethen, Lloyd N., and David Bau III. *Numerical Linear Algebra*. SIAM, 1997. ISBN 978-0-89871-361-9. DOI: 10.1137/1.9780898719574. 25th-anniversary edition, SIAM, 2022, ISBN 978-1-61197-715-8.
 
+## Related books and recommendation provenance
+
+- Brown, James Ward, and Ruel V. Churchill. *Complex Variables and Applications*. 9th ed. New York: McGraw-Hill Education, 2014. ISBN 978-1-259-07277-2. This was referenced while disambiguating the remembered “Churchill / Ward” name from Cheney–Light; it is not part of the Paleologo numerical-methods trio.
+- Paleologo, Giuseppe A. *The Elements of Quantitative Investing*. Wiley, 2025. ISBN 978-1-394-26545-9. Its numerical-linear-algebra discussion cites Trefethen–Bau and points readers toward Golub–Van Loan for SVD and matrix computation.
+- Paleologo, Giuseppe A. “The Western Gappy Canon.” Reading-list document collecting book recommendations previously made on X; public mirror consulted 2026-09-09: https://studylib.net/doc/27779816/gappycanon. This is recommendation provenance rather than a scholarly publication.
+
 ## Numerical linear algebra and matrix analysis leads already identified
 
 These are works or authors explicitly pointed to by the core books or by closely related source material already in this corpus. Full publication data should be completed from the books themselves or authoritative catalogs.
