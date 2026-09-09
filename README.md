@@ -27,6 +27,7 @@ For every book:
 
 - [Conditioning, scaling, and artificial range limits](notes/conditioning-scaling-and-range.md) — distinguish intrinsic conditioning from bad scaling, unstable algorithms, and inadequate numeric formats; directly applicable to viewport zoom.
 - [Paleologo numerical-methods books](notes/paleologo-numerical-methods-books.md) — identification of Cheney–Light, Trefethen–Bau, and Golub–Van Loan; why they were recommended; and the current link-versus-mirror copyright check.
+- [Public-preview summaries](notes/public-preview-summaries.md) — lawful author/publisher preview material for Cheney–Light, Trefethen–Bau, and Golub–Van Loan, summarized without mirroring copyrighted text.
 - [Trefethen–Bau numerical-linear-algebra notes](notes/trefethen-bau-numerical-linear-algebra.md)
 - [Trefethen–Bau complex change of basis](notes/trefethen-bau-complex-change-of-basis.md)
 - [QR factorization flags](notes/qr-factorization-flags.md)
