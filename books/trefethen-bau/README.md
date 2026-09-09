@@ -30,6 +30,8 @@ Begins with matrix-vector multiplication interpreted as linear combinations and 
 
 Develops projectors, Gram–Schmidt, Householder transformations, QR factorization, and least-squares problems. Orthogonal transformations are prized because they preserve Euclidean length and therefore tend not to manufacture numerical amplification. Householder QR becomes a model for a broader design principle: if two formulations are mathematically equivalent, prefer the one whose transformations preserve the quantities error analysis cares about.
 
+Lecture 7 also exposes a direct geometric bridge to representation theory: the successive column spaces `span(a₁) ⊂ span(a₁,a₂) ⊂ ...` form a flag, and QR constructs an orthonormal frame adapted to exactly that flag. In the square invertible case, the upper-triangular factor is the `B` in the full flag variety `GL(n, ℂ)/B`. See [QR factorization, flags, and representation theory](../../notes/qr-factorization-flags.md), which also records David Vogan's MIT flag-manifold notes and distinguishes this notion from Razborov flag algebras and Robert Ghrist's flag complexes.
+
 ### III. Conditioning and Stability
 
 Separates **conditioning of the problem** from **stability of the algorithm**. A well-conditioned problem can be damaged by an unstable implementation; an ill-conditioned problem cannot be made intrinsically well-conditioned merely by better code. Backward error asks whether the computed answer is the exact answer to a nearby problem, often giving a more useful diagnostic than raw forward error. This part is directly relevant to the Holomorphic zoom issue: an arbitrary viewport clamp is not a substitute for showing that the evaluation is backward/forward stable over the desired scale range.
