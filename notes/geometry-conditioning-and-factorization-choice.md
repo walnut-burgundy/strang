@@ -1,12 +1,12 @@
 # Geometry → conditioning → factorization choice
 
-This note is the narrow numerical bridge from the repository's current work on realification, rotations/reflections, Householder geometry, and projective structure to practical algorithm choice.
+This is the smallest numerical bridge from the current realification, rotation/reflection, Householder, and projective notes to actual factorization choice. It is not a QR/LU/SVD survey.
 
-It is not a survey of QR, LU, and SVD. The point is to record which numerical consequences follow from the geometry already present here.
+## Three geometric facts with numerical consequences
 
-## 1. Orthogonal/unitary geometry is a stability primitive
+### Orthogonal and unitary maps are 2-norm isometries
 
-If `Q` is orthogonal or unitary, then
+For orthogonal/unitary `Q`,
 
 ```text
 ||Qx||₂ = ||x||₂
@@ -14,67 +14,42 @@ If `Q` is orthogonal or unitary, then
 κ₂(Q) = 1.
 ```
 
-So an exact rotation, reflection, or unitary change of basis does not itself amplify 2-norm perturbations.
+So exact rotations, reflections, Householder factors, Givens factors, and unitary basis changes do not themselves amplify 2-norm perturbations. This is why the reflection geometry matters numerically.
 
-This is the numerical reason Householder reflectors and Givens rotations matter beyond their geometric interpretation: they can change coordinates and create zeros without introducing an intrinsically ill-conditioned transformation.
+It does **not** make every floating implementation automatically stable. The construction and application of the factors still need a backward-error argument.
 
-That does **not** mean every implementation made from rotations/reflections is automatically stable. Floating-point formulas for constructing and applying the factors can still lose accuracy. The useful distinction is:
+### Realification preserves the conditioning question
 
-```text
-exact geometric map: isometry
-floating implementation: must still earn a backward-error bound
-```
-
-## 2. Realification preserves the 2-norm conditioning question
-
-For a complex matrix
-
-```text
-A = B + iC,
-```
-
-its realification is
+For `A = B+iC`,
 
 ```text
 Φ(A) = [ B  -C ]
        [ C   B ].
 ```
 
-The singular values of `Φ(A)` are the singular values of `A`, each repeated twice. Therefore
+The singular values of `Φ(A)` are those of `A`, each repeated twice. Hence, for invertible `A`,
 
 ```text
 ||Φ(A)||₂ = ||A||₂
-κ₂(Φ(A)) = κ₂(A)
+κ₂(Φ(A)) = κ₂(A).
 ```
 
-when `A` is invertible.
+Realification changes representation and cost, not intrinsic 2-norm conditioning. A complex unitary basis change becomes an orthogonal real basis change commuting with `J`, so the isometry survives too.
 
-So converting a complex linear problem into doubled real coordinates does not cure or worsen its intrinsic 2-norm conditioning. It changes representation and cost, not the underlying singular-value geometry.
+### Projective equality does not fix numerical scale
 
-Likewise, a complex unitary change of basis realifies to an orthogonal change of basis commuting with the complex structure `J`. The numerical isometry survives the representation change.
+`[z] = [λz]` for every nonzero `λ`, but different representatives can overflow, underflow, or waste precision differently.
 
-## 3. Projective equivalence does not imply numerical equivalence of representatives
-
-A projective point is unchanged by nonzero rescaling:
+Therefore keep separate:
 
 ```text
-[z] = [λz],    λ ≠ 0.
+semantic object: projective point
+numerical representation: well-scaled homogeneous representative
 ```
 
-Mathematically these are the same point. Numerically, the representatives can behave very differently: one may overflow, underflow, or waste most available precision while another is well scaled.
+Normalizing or rescaling homogeneous coordinates changes representation, not the projective point. This is scaling, not conditioning.
 
-So projective code should separate:
-
-```text
-semantic equality: same projective point
-numerical representation: choose a well-scaled representative
-```
-
-A standard practical move is to normalize or otherwise rescale homogeneous coordinates before sensitive calculations. The scale choice is a representation decision, not a change in the underlying geometry.
-
-This is the same general lesson as the repository's conditioning/scaling note: bad scale is not the same thing as bad conditioning.
-
-## 4. The first conditioning test comes from the SVD
+## Conditioning first, algorithm second
 
 For invertible `A`,
 
@@ -82,148 +57,81 @@ For invertible `A`,
 κ₂(A) = σ_max(A) / σ_min(A).
 ```
 
-This turns the geometric stretching picture into the practical question:
+The SVD therefore answers the geometric question before algorithm choice: how much can the problem amplify perturbations in the data?
+
+Stability is a separate question: what nearby problem did the floating computation actually solve?
+
+For a backward-stable method, the useful schematic relation is
 
 ```text
-Is the requested answer robustly determined by the data?
+forward error ≈ conditioning × backward error.
 ```
 
-If `σ_min` is tiny relative to `σ_max`, no algorithm can manufacture a highly accurate inverse-sensitive answer from rounded data.
+Do not blame the algorithm for sensitivity already present in the problem, and do not excuse an unstable algorithm merely because the problem is well conditioned.
 
-That is a property of the problem. Algorithm choice comes next.
+## Practical factorization boundary
 
-## 5. QR, LU, and SVD solve different numerical problems
+| Task | Default numerical route | Why this geometry matters |
+| --- | --- | --- |
+| Dense least squares / orthogonalization | Householder QR | Built from isometries; backward-stable factorization; avoids squaring `κ` |
+| Sparse/local annihilation or factor updates | Givens QR | Same isometric geometry, but factors act in local coordinate planes |
+| General square nonsingular solve | LU with an appropriate pivoting policy | Usually less machinery than QR/SVD, but elimination is not an isometry and pivot growth matters |
+| Rank uncertain, nearly singular, or singular values/condition number are part of the answer | SVD | Directly exposes singular directions and near-null space instead of forcing an early nonsingular/singular decision |
 
-### Householder QR
-
-Use Householder QR as the default dense route when the task is fundamentally orthogonalization or least squares and one wants to avoid avoidable amplification.
-
-The important numerical facts are:
-
-- Householder factors are orthogonal/unitary in exact arithmetic;
-- the factorization can be interpreted backward-stably;
-- least squares via QR avoids forming `A* A`;
-- therefore it avoids automatically replacing `κ₂(A)` by `κ₂(A)²`.
-
-For structured sparse updates or when only a few entries must be annihilated, Givens rotations may be preferable because they act locally. This is an execution-structure choice inside the same isometric family, not a different conditioning theory.
-
-### LU with pivoting
-
-LU is usually the practical dense choice for a general square nonsingular solve when least-squares geometry and rank revelation are not the main problem.
-
-But elimination is not an isometry. Intermediate entries can grow, so pivoting and growth behavior matter. A stable triangular solve at the end does not by itself guarantee that the preceding elimination produced a small backward error.
-
-The relevant planner question is therefore not merely
-
-```text
-Can A be factored as LU?
-```
-
-but
-
-```text
-What pivoting/growth behavior is expected for this matrix class?
-```
-
-### SVD
-
-Use the SVD when singular values, numerical rank, near-null directions, or the conditioning itself are part of the answer.
-
-It is the most explicit representation of the geometry:
-
-```text
-input direction
-    → singular-vector coordinates
-    → independent stretches σᵢ
-    → output direction.
-```
-
-That makes near-rank-deficiency visible instead of forcing a binary nonsingular/singular decision too early.
-
-The tradeoff is work: if the only task is a routine well-conditioned square solve, computing a full SVD is usually more machinery than needed.
-
-## 6. One choice to reject early: normal equations by reflex
-
-For least squares,
+One especially important rejection rule is the normal equations used merely for convenience:
 
 ```text
 A* A x = A* b
-```
-
-has
-
-```text
 κ₂(A* A) = κ₂(A)².
 ```
 
-That identity is the compact bridge from singular-value geometry to algorithm selection.
+This does not mean the normal equations always fail. It means they deliberately square the matrix condition number, so they are not the neutral form of the original least-squares problem.
 
-It does not mean the normal equations always fail. It means they deliberately square the matrix condition number, so they should not be the default when QR can solve the original least-squares geometry without that transformation.
+## Small extension to the rotation/reflection planner
 
-## 7. What to measure
+The planner already considers factor shape, dependency depth, reuse, and target cost. Before benchmarking, add only:
 
-Do not judge a factorization mainly by entrywise agreement with one preferred set of factors.
+```text
+conditioning_effect
+    preserve κ, square it, or otherwise change the problem?
 
-For numerical work, preserve at least:
+backward_error_model
+    known nearby-problem interpretation?
+
+orthogonality_loss
+    does the result depend on Q remaining accurately orthogonal?
+
+growth_risk
+    can elimination create large intermediate entries?
+
+rank_revelation
+    must near-null directions be exposed?
+```
+
+That is enough to connect geometric candidate generation to numerical reliability without turning the planner into an encyclopedia of matrix algorithms.
+
+## What to record from an implementation
+
+Prefer numerical evidence tied to the problem:
 
 ```text
 residual / reconstruction error
 backward error
-loss of orthogonality, when Q matters explicitly
-estimated condition number
-pivot growth, for LU-family methods
-rank-revealing evidence, when rank is uncertain
+loss of orthogonality when Q matters
+condition estimate
+pivot growth for LU-family methods
+rank-revealing evidence when rank is uncertain
 ```
 
-Householder QR is the canonical warning here: individual computed factors can differ noticeably from a chosen exact factorization while their product still gives an excellent nearby factorization of `A`.
+In particular, do not judge Householder QR mainly by entrywise agreement with one preferred exact `Q` and `R`; the factorization residual/backward error is the more meaningful test.
 
-## 8. Minimal planner consequence
+## Related notes
 
-The rotation/reflection planner already distinguishes factor graphs, dependency depth, reuse, and target cost. The smallest numerical extension is to add only these questions before benchmarking:
-
-```text
-conditioning_effect
-    does the reformulation preserve κ, square it, or otherwise change it?
-
-backward_error_model
-    is there a known nearby-problem interpretation for this algorithm?
-
-orthogonality_loss
-    does the task depend on Q remaining accurately orthogonal?
-
-growth_risk
-    can elimination produce large intermediates?
-
-rank_revelation
-    must the algorithm expose near-null directions rather than merely return a solve?
-```
-
-This keeps the planner tied to numerical consequences rather than turning it into a catalogue of matrix algorithms.
-
-## Compact decision boundary
-
-```text
-least squares / orthogonalization
-    → Householder QR by default
-    → Givens when locality, sparsity, or updates dominate
-
-square nonsingular solve
-    → LU with an appropriate pivoting policy
-
-rank uncertain / near singular / singular values are themselves needed
-    → SVD
-
-least squares formed through A* A only for convenience
-    → reconsider; κ is squared
-```
-
-## Related repository notes
-
-- [`trefethen-bau-complex-change-of-basis.md`](trefethen-bau-complex-change-of-basis.md) — complex bases, realification, and the complex structure `J`.
-- [`householder-coxeter-ade.md`](householder-coxeter-ade.md) — Householder reflectors as Euclidean reflections.
-- [`conditioning-scaling-and-range.md`](conditioning-scaling-and-range.md) — conditioning versus scaling, stability, and numeric format.
-- [`trefethen-bau-numerical-linear-algebra.md`](trefethen-bau-numerical-linear-algebra.md) — conditioning, backward stability, Householder QR, least squares, and the normal-equations distinction.
-- [`qr-factorization-flags.md`](qr-factorization-flags.md) — the geometric flag interpretation of QR.
+- [`trefethen-bau-complex-change-of-basis.md`](trefethen-bau-complex-change-of-basis.md)
+- [`householder-coxeter-ade.md`](householder-coxeter-ade.md)
+- [`conditioning-scaling-and-range.md`](conditioning-scaling-and-range.md)
+- [`trefethen-bau-numerical-linear-algebra.md`](trefethen-bau-numerical-linear-algebra.md)
+- [`qr-factorization-flags.md`](qr-factorization-flags.md)
 
 ## Sources
 
