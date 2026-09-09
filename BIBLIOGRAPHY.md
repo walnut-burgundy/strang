@@ -4,6 +4,14 @@ This file is additive. It should grow as the bibliographies, notes, acknowledgme
 
 Bibliographic facts may be copied. Protected explanatory prose, annotations, exercises, or solutions should not be copied merely because the citation list is being preserved.
 
+## Bibliography audit status
+
+- **Trefethen & Bau, 1997 — COMPLETE transcription:** [`books/trefethen-bau/bibliography.md`](books/trefethen-bau/bibliography.md). All entries from the SIAM back matter, pp. 343–352, are recorded. The three `et al.` entries have been expanded from authoritative records. Acknowledgments are separately recorded in [`books/trefethen-bau/acknowledgments.md`](books/trefethen-bau/acknowledgments.md).
+- **Golub & Van Loan, 4th ed. — authoritative source located:** the authors publish a separate 66-page fourth-edition bibliography, dated 1 Dec 2012. Canonical public copy: https://bpb-us-e1.wpmucdn.com/blogs.cornell.edu/dist/c/9924/files/2021/11/GVL4_Bib.pdf . This is the source for the next full transcription/index pass.
+- **Kincaid & Cheney, 3rd ed. — book bibliography not exposed on the official textbook site:** the author site supplies contents, errata, sample programs and related links, but no full bibliography page has been located publicly. A lawful local-copy/back-matter pass is still needed.
+- **Acton, 1990 MAA edition — bibliography identified but not publicly exposed as text:** library records place the bibliography at pp. 537–540. A lawful local-copy/back-matter pass is still needed.
+- **Cheney & Light, *A Course in Approximation Theory* — audit pending.**
+
 ## Core books
 
 - Acton, Forman S. *Numerical Methods That Work*. New York: Harper & Row, 1970. Reissued with new preface and additional problems by the Mathematical Association of America, 1990. ISBN 0-88385-450-3 / 978-0-88385-450-1.
