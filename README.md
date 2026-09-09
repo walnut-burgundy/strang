@@ -24,7 +24,18 @@ For every book:
 
 ## Related notes
 
+- [Conditioning, scaling, and artificial range limits](notes/conditioning-scaling-and-range.md) — distinguish intrinsic conditioning from bad scaling, unstable algorithms, and inadequate numeric formats; directly applicable to viewport zoom.
+- [Trefethen–Bau numerical-linear-algebra notes](notes/trefethen-bau-numerical-linear-algebra.md)
+- [Trefethen–Bau complex change of basis](notes/trefethen-bau-complex-change-of-basis.md)
+- [QR factorization flags](notes/qr-factorization-flags.md)
 - [Wegert's *Complex Beauties* — numerical-analysis notes](notes/wegert-complex-beauties-numerical-analysis.md) — phase portraits as diagnostics for approximation, rational filters, finite differences, spectral methods, series convergence, Padé approximation, and special functions.
+- [Mumford pattern-theory notes](notes/mumford-pattern-theory.md)
+
+## Repository-wide records
+
+- [Source and mirroring ledger](SOURCES.md)
+- [Bibliography and intellectual ancestry](BIBLIOGRAPHY.md)
+- [Thanks](THANKS.md)
 
 ## Cross-cutting notes
 
