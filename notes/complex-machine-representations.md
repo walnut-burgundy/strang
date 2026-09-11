@@ -1,149 +1,61 @@
 # Complex values at the machine boundary
 
-This note records implementation work that should remain visible to a future compiler or model reading Strang.
+This is an evidence ledger for complex-number representation work that already exists across the compiler, CPU backends, Android application work, and shader backends.
 
-The mathematical type of a complex value is deliberately independent of its machine representation. Several backend experiments already exploit that freedom differently. Those choices, their evidence, and their unresolved conflicts are useful numerical/compiler data and should not be flattened into one vague statement such as “complex is two floats.”
+The purpose is not to choose one representation. It is to prevent later work from forgetting experiments that have already been implemented, tested, rejected, or deliberately kept provisional.
 
-## Semantic rule
-
-Keep these layers distinct:
+## Keep five layers separate
 
 ```text
-mathematical complex value
+mathematical semantics
     ↓
-chosen numerical coordinates
+numerical coordinates
     ↓
-precision width
+precision
     ↓
-ABI / register representation
+ABI / register or shader representation
     ↓
-physical target instructions
+target instructions and execution evidence
 ```
 
-A backend may choose Cartesian or polar coordinates, scalar registers or a packed vector, F16 or F32, and a particular calling convention without redefining the mathematical field ℂ.
+The source-level complex type is not defined by any one machine layout. Cartesian `(real, imaginary)`, polar `(modulus, argument)`, two scalar registers, a shader `vec2`, or a pair of F32 words are lowering choices.
 
-Conversely, changing any of those machine choices is not automatically semantics-preserving. The backend must preserve the shared arithmetic/projective contracts and record the conversion/error behavior.
+The reverse warning matters too: changing representation is not a free cast. Cartesian↔polar conversion changes numerical work, exceptional cases, branch/phase conventions, and error behavior.
 
-## Current evidence snapshot
+## Current implementation hierarchy
 
-As of 2026-09-09 the most useful implementation lines are:
+For the current Idriç complex/projective subsystem, the merged ai-ci policy records:
 
-| Target line | Branch / revision | Complex machine coordinates | Precision | Machine representation |
+```text
+canonical mathematical semantics
+    -> direct x86-64 executable leader / CPU oracle
+    -> shared numerical/projective corpus
+    -> Thumb-2, shader/GPU, application, and other followers
+```
+
+General backend development can still be Thumb-led. This is a narrow exception for complex/projective arithmetic.
+
+The AArch64 ICK/GCC work below is important representation evidence, but it is a separate compiler experiment and Android application path rather than the canonical Idriç complex/projective leader.
+
+## Evidence ledger
+
+| Line | Role/status | Physical or target representation | Boundary | Evidence actually present |
 | --- | --- | --- | --- | --- |
-| Android ARMv7 Thumb-2 experiment | `isomorphisms/idric-arm-thumb`, `polar-complex-first`, `e0f23d1a5b3977f1c55da85b530049118cb4f7f6` | polar `(magnitude, phaseTurns)` | F32 | two one-word components; two complex arguments occupy `r0,r1` and `r2,r3` at the softfp boundary; VFP scalar arithmetic inside |
-| x86-64 complex/projective leader | `isomorphisms/idric-x86-aggressive-backend`, `x86/complex-projective-leader`, `71322966574d2589bcf07ac012cea878595b887c` | Cartesian `(real, imag)` | F32 | scalar SSE components; working complex pair in `xmm0,xmm1`, RHS in `xmm2,xmm3`, scratch in `xmm4`–`xmm7` |
-| GLSL ES complex/projective follower | `isomorphisms/idris-shader-backend`, `complex-projective/follower`, `4360f29d3bbdc09b4cc513e4a6be647f290ffede` | Cartesian `(real, imag)` | F32/highp currently | typed `SVec 2` lowered to GLSL ES `vec2`; physical vendor register allocation remains the driver/compiler's job |
-| PowerVR GLES target work | `isomorphisms/idris-shader-backend`, `target/powervr-ge8322-gles`, `4f807b8561bd4704c85ce63af01c277d74c93769` | follows shader coordinate choice | F32 today; explicit F16 work separate | `highp` for F32; `mediump`/F16 only under target evidence, not by global narrowing |
+| Idriç complex/projective semantics | semantic source, still draft/stacked in PR #81 | deliberately unspecified | `ComplexCoordinates complex n`, projective quotient types, shared F32 corpus | typecheck/executable structural tests; no machine layout mandated |
+| x86-64 direct backend | current complex/projective executable leader, PR #22 draft | Cartesian F32 pair; scalar SSE | internal machine-code convention | direct ELF64 generation, native execution, shared numerical/projective corpus, thin Debian, deterministic headless render |
+| ARMv7 Thumb-2 Idriç backend | `PROVISIONAL_DISPOSABLE` follower, PR #53 draft | temporary polar F32 pair `(magnitude, phaseTurns)` | softfp one-word argument ABI | lowering + Thumb assembly + QEMU complex multiplication PASS; full Cartesian/projective corpus and physical device SKIP |
+| AArch64 ICK/GCC | merged experimental compiler implementation, `rhs` PR #1 | floating `_Complex` physical storage `(modulus, argument)` | `_Complex` must remain inside ICK-compiled unit; scalar/array Cartesian boundary outside | static polar bytes, multiplication/division, focused tests under qemu at `-O0/-O2`, Android NDK link; known remaining representation limits |
+| Wegert Android arm64 consumer | merged application integration, Wegert PR #13 | ICK polar `_Complex` inside isolated AArch64 object; Cartesian outside | exported scalar/array Cartesian API | object checksum/ELF checks, APK arm64 link; app keeps armeabi-v7a and x86_64 Cartesian fallbacks and GLES Cartesian upload |
+| GLSL ES complex/projective follower | shader follower, PR #36 draft | Cartesian `SVec 2` → GLSL ES `vec2` | shader IR / GLSL | typed IR, generated GLSL, validation, program link PASS; driver load/GPU execution/framebuffer/vendor device SKIP in this lane |
+| PowerVR / other shader target work | target precision and hardware-followup work | target-dependent; no proven physical complex register assignment | GLSL/driver/device | precision policy and separate device receipt machinery; do not infer vendor registers from `vec2` |
 
-These are implementation records, not a declaration that all backends must converge on the same physical layout.
+This table is the first thing a future machine should consult before inventing another representation.
 
-## Android ARMv7: polar pair experiment
+## x86-64: current executable complex/projective leader
 
-The direct Android CPU backend targets:
+The x86-64 candidate uses direct machine code and two scalar Float32 Cartesian components.
 
-```text
-Android armeabi-v7a
-ARMv7-A
-Thumb-2
-VFPv3-D16
-softfp procedure-call boundary
-runtime-free numerical leaves
-```
-
-The ordinary scalar ABI sends up to four one-word Float32 arguments through:
-
-```text
-r0  r1  r2  r3
-```
-
-and returns one Float32 as raw bits in `r0`. Hardware VFP arithmetic is used inside the leaf.
-
-The polar-complex experiment deliberately maps one logical complex value to:
-
-```text
-(magnitude, phaseTurns)
-```
-
-with both fields F32. `phaseTurns` measures angle in turns:
-
-```text
-1       = one full revolution
-1/2     = half turn
-1/4     = quarter turn
-1/8     = eighth turn
-```
-
-That choice makes dyadic roots of unity exactly representable in binary32 at the phase-coordinate level.
-
-### Register layout for two complex arguments
-
-The tested four-word layout is:
-
-```text
-r0 = left.magnitude
-r1 = left.phaseTurns
-r2 = right.magnitude
-r3 = right.phaseTurns
-```
-
-The acceptance fixture explicitly checks:
-
-```text
-(2, 1/8 turn) × (3, 1/4 turn)
-    =
-(6, 3/8 turn)
-```
-
-Magnitude multiplication consumes `r0` and `r2`; phase addition consumes `r1` and `r3`.
-
-This is not merely a prose ABI sketch: the ARM self-test loads those exact binary32 words into the four argument registers and checks the returned component bit patterns.
-
-### Internal scalar execution
-
-The current Thumb emitter is correctness-first rather than a first-class complex register allocator. One-word arguments are given stack homes, then Float32 operations use VFP scalar registers such as:
-
-```text
-s0
-s1
-```
-
-for the active operation before writing the result back to its local home.
-
-Thus the current implementation proves the *logical pair ABI* at the function boundary, but it does not yet prove that one logical complex value remains permanently resident as an allocated VFP register pair through an arbitrary expression.
-
-That distinction matters. A future allocator could keep the pair live in VFP registers, but the present evidence should not be rewritten as though that work already exists.
-
-### Current return limitation
-
-The branch explicitly lacks a two-word complex return convention. Therefore one logical polar result is presently exposed by two scalar exported leaves:
-
-```text
-polar_multiply_magnitude(...)
-polar_multiply_phase(...)
-```
-
-Both consume the same four-word pair layout; each returns one F32 component through `r0`.
-
-A future complex ABI should remove this scalar-leaf artifact rather than treating it as the mathematical API.
-
-### Why polar was worth testing
-
-For multiplication and division, polar coordinates expose the operations directly:
-
-```text
-(ρ₁, θ₁)(ρ₂, θ₂) = (ρ₁ρ₂, θ₁+θ₂)
-(ρ₁, θ₁)/(ρ₂, θ₂) = (ρ₁/ρ₂, θ₁-θ₂)
-```
-
-Roots also have a direct phase interpretation. This makes polar representation a plausible target choice for workloads dominated by products, roots, magnitude, and phase.
-
-But addition is not cheap in polar form. Therefore the ARM experiment is evidence for a representation strategy, not proof that polar must be the universal backend representation.
-
-## x86-64: Cartesian scalar-SSE pair
-
-The current complex/projective x86 implementation takes the opposite baseline: one ordinary complex value is two scalar F32 Cartesian components.
-
-The machine-code generator uses the working convention:
+The working convention in the complex arithmetic generator is:
 
 ```text
 xmm0 = left.real
@@ -152,140 +64,203 @@ xmm2 = right.real
 xmm3 = right.imag
 ```
 
-For complex multiplication it uses `xmm4`–`xmm7` as scalar scratch registers, then restores the result to:
+Complex multiply/divide use `xmm4`–`xmm7` as scalar scratch and restore the result to `xmm0,xmm1`.
+
+This is real register-level implementation evidence, not just an ABI proposal. Python emits the instruction bytes and ELF64 image; candidate arithmetic does not pass through C, an external assembler/linker, libc, libm, RefC, or LLVM.
+
+The branch consumes the shared F32 complex/projective corpus and covers addition, multiplication, reciprocal/division, conjugation, magnitude, polynomial/rational evaluation, bounded complex exponential, Cartesian/polar observation, projective rescaling/non-equivalence, and affine/CP¹ chart behavior.
+
+Polar operations here are observational. x87 `FPATAN`, `FSIN`, and `FCOS` are used for the polar/phase round trip, while the evolving complex arithmetic remains Cartesian scalar-SSE.
+
+So the concrete current x86 choice is:
 
 ```text
-xmm0 = result.real
-xmm1 = result.imag
+core complex arithmetic: Cartesian F32 pair
+working registers: xmm0/xmm1
+polar conversion: explicit observational path
 ```
 
-Complex division follows the same pair convention.
+This implementation leads the current subsystem, but it does not redefine mathematical `Complex` as an SSE pair.
 
-This is direct machine code: the candidate path does not route arithmetic through C, an assembler, a linker, libc, libm, RefC, or LLVM.
+## ARMv7 Android Thumb-2: useful but explicitly provisional
 
-### Why Cartesian is useful here
+The older ARM slice is real executable work, but its current policy status is important: **provisional and disposable**.
 
-Cartesian representation makes the current arithmetic corpus straightforward:
-
-- add/subtract componentwise;
-- multiply/divide with scalar SSE operations;
-- polynomial/rational evaluation without repeated coordinate conversion;
-- bounded complex exponential directly in complex arithmetic.
-
-The x86 branch uses x87 `FPATAN`, `FSIN`, and `FCOS` only for observational Cartesian/polar conversion. Those phase/magnitude observations do not feed back into the holomorphic `q → exp(q)` evolution.
-
-This is a useful compiler boundary:
+The temporary complex representation is:
 
 ```text
-core evolving representation: Cartesian F32 pair
-observational polar conversion: separate path
+(magnitude, phaseTurns)
 ```
 
-### Projective values
+with two F32 words per logical complex value. `phaseTurns = 1` is one revolution, so dyadic turns such as `1/2`, `1/4`, and `1/8` are exactly representable at the phase-coordinate level in binary32.
 
-A projective point is not lowered as a special runtime quotient object. It remains a sequence of homogeneous complex coordinates using the same underlying complex component representation.
+For two complex operands, the tested softfp argument layout is:
 
-Projective equality is checked through common rescaling or invariant wedges, not by raw component equality. There is no normalization after every arithmetic operation.
+```text
+r0 = left.magnitude
+r1 = left.phaseTurns
+r2 = right.magnitude
+r3 = right.phaseTurns
+```
 
-## GLSL ES: typed `vec2`, not “the definition of complex”
+The self-test genuinely executes under QEMU:
 
-The shader follower lowers one complex scalar to:
+```text
+(2, 1/8 turn) × (3, 1/4 turn)
+    =
+(6, 3/8 turn)
+```
+
+The current emitter gives scalar locals stack homes and uses VFP scalar registers such as `s0` and `s1` for active F32 operations. Therefore the evidence is **not** a global pair-aware VFP register allocator.
+
+There is also no general two-word complex return ABI. The experiment exposes magnitude and phase results as two scalar exported leaves.
+
+PR #53 deliberately prevents this temporary design from becoming accidental architecture. Its receipt records:
+
+```text
+complex multiplication lowering      PASS
+Thumb-2 assembly                     PASS
+QEMU complex multiplication          PASS
+shared Cartesian numerical corpus    SKIP
+projective corpus                     SKIP
+headless render                       SKIP
+physical ARM device                   SKIP
+```
+
+This is the right interpretation of the ARM experiment: preserve the executable result and register grouping as evidence, but do not let it constrain later ARM, x86, GPU, or source-language design.
+
+## AArch64 ICK/GCC: the major representation experiment that must not be lost
+
+The AArch64 ICK work goes substantially deeper than the Thumb follower: it modifies GCC-family `_Complex` representation itself.
+
+For floating `_Complex`, the implemented physical storage is:
+
+```text
+(modulus, argument)
+```
+
+while C semantic access through real/imaginary components is reconstructed where required.
+
+Complex multiplication and division operate directly on the physical polar slots. Focused GCC tests cover polar layout, component stores/direct returns, and radial floor/ceil behavior.
+
+The qualified compiler line builds an `aarch64-linux-gnu` cross compiler and checks real AArch64 objects. The focused work verifies static polar object bytes and complex multiplication and runs under qemu at `-O0` and `-O2`. The same isolated PIC object can be linked into an Android API 26 shared library with the NDK.
+
+### Boundary with ordinary Android code
+
+The safe consumption contract is intentionally narrow:
+
+```text
+inside ICK translation unit:
+    _Complex may use ICK polar physical representation
+
+boundary to Clang/NDK:
+    ordinary scalar and pointer/array values only
+```
+
+Do **not** pass `_Complex` across the ICK/Clang boundary. Clang's Cartesian `_Complex` ABI is not assumed compatible with ICK's physical polar representation.
+
+The representative bridge accepts Cartesian scalar inputs, constructs `_Complex` internally, performs complex operations in ICK, and returns Cartesian scalar/array outputs.
+
+### Known representation limits
+
+The ICK source explicitly records boundaries that matter numerically and semantically:
+
+- partial or volatile bytewise views of complex storage are not generally qualified;
+- arbitrary external functions accepting/returning `_Complex` are not qualified;
+- the two-word polar representation does not preserve every ISO C `_Complex` distinction involving infinities, NaNs, or signed-zero quadrants;
+- historical qualification exposed an `-O2` constant-representation/folding problem before later source consolidation.
+
+These limitations are part of the result, not noise to omit from Strang.
+
+## Wegert: actual Android consumption of the AArch64 experiment
+
+Wegert merged an isolated ICK AArch64 complex-math object into the Android application path.
+
+Its ABI split is informative:
+
+```text
+arm64-v8a:
+    ICK-compiled internal _Complex arithmetic
+    polar physical representation inside object
+    Cartesian scalar/array API outside
+
+armeabi-v7a:
+    ordinary Cartesian fallback
+
+x86_64:
+    ordinary Cartesian fallback
+
+GLES upload/storage:
+    Cartesian
+```
+
+The application uses the ICK object for coefficient expansion while keeping `_Complex` entirely behind the object boundary. CI verifies the pinned object and AArch64 machine type and builds all supported Android ABIs.
+
+A later open Wegert PR adds a stronger source-built qualification lane: rebuild ICK from the qualified source commit, rebuild the actual complex object, require its hash to match, execute the math boundary under qemu-aarch64, then build the APK using the freshly generated object.
+
+This application evidence is different from the Idriç x86-leader hierarchy, but it is precisely the kind of backend/representation knowledge that Strang should preserve.
+
+## GLSL ES: Cartesian logical pair, physical registers unknown
+
+The complex/projective shader follower uses:
 
 ```text
 SVec 2
 ```
 
-which becomes a GLSL ES `vec2` carrying Cartesian arithmetic coordinates.
+as one Cartesian complex scalar, lowering naturally to GLSL ES `vec2`.
 
-This is a natural target representation because GPU arithmetic already has two-lane vector syntax. It still must not leak upward into the source semantics:
+That proves a logical target representation. It does **not** prove a PowerVR USC register pair, Mali register allocation, Adreno packing, or any other vendor physical layout. The driver compiler can scalarize, pack, fuse, spill, or rearrange it.
 
-```text
-Complex ≠ arbitrary vec2
-C^n ≠ arbitrary vec(2n)
-```
-
-The generated complex/projective fixture performs Cartesian complex arithmetic and keeps projective CP¹ checks in terms of the invariant relation.
-
-### Register language versus physical GPU registers
-
-On the CPU backends we control concrete architectural registers such as `r0` or `xmm0`.
-
-For GLSL ES, `vec2` is a compiler-level target value, **not evidence of a particular physical PowerVR/Mali/Adreno register assignment**. The vendor driver may scalarize, pack, fuse, spill, or otherwise allocate it.
-
-Therefore Strang should record:
+The evidence chain is intentionally staged:
 
 ```text
-logical GPU representation: vec2 of declared precision
-physical GPU register allocation: unknown until target-specific compiler/disassembly evidence exists
+typed IR generated          PASS
+GLSL ES generated           PASS
+shader validated            PASS
+program linked              PASS
+shader loaded by driver     SKIP in generic follower lane
+GPU executed                SKIP
+framebuffer captured        SKIP
+vendor/device receipt       SKIP
 ```
 
-Do not invent USC/register facts merely because the shader IR has a `vec2`.
+A later target can strengthen these stages without changing complex semantics.
 
-## Precision is an independent axis
+## Precision is independent of complex coordinate form
 
-The shader work deliberately separates value shape from float width.
-
-Current policy:
+The shader work separately tracks numeric width:
 
 ```text
 F32 -> highp float / highp vecN
 F16 -> distinct semantic width
 ```
 
-F32→F16 demotion must be explicit. F16 and F32 may coexist in one shader.
+F32→F16 demotion is not implicit. Portable GLSL ES `mediump` is a precision/range guarantee, not a universal promise of exact binary16 storage. PowerVR-specific F16 claims need target evidence.
 
-Portable GLSL ES `mediump` is not automatically claimed to mean exact IEEE binary16 on every GPU. On PowerVR, target documentation and real-device evidence may justify an F16 profile, but that is a target profile rather than a global textual replacement of `highp` with `mediump`.
+The earlier Float16 integration work also exposed a real compiler/API boundary: source `Float16` support can succeed in the compiler while still fail later because the shader source/signature/lowering layer only accepts the older scalar profile. That distinction belongs in the evidence trail rather than being summarized as “FP16 unsupported.”
 
-This is especially important for complex values: the two components must carry the same declared width unless a deliberately mixed representation is introduced and justified.
+## Cartesian versus polar is an algorithmic choice, not merely storage syntax
 
-## PowerVR Android phone work
-
-The PowerVR lane adds a real-device acceptance boundary around generated GLES code:
+The existing work now gives at least three useful cases:
 
 ```text
-Idriç / typed shader IR
-    -> generated GLSL ES
-    -> Android NDK runner
-    -> real phone EGL/GLES driver
-    -> framebuffer readback
+x86 Idriç leader          Cartesian F32
+Thumb provisional slice   polar F32 turns
+AArch64 ICK/GCC           polar physical _Complex storage
+shader follower           Cartesian vec2
 ```
 
-The acceptance record is intended to preserve the exact source commit, phone ABI, Android version, EGL/GLES/GLSL strings, renderer/vendor, framebuffer verdicts, and timing data without recording unique device identifiers.
-
-At the recorded branch state, software/Mesa acceptance existed but the architecture-specific PowerVR phone gate still required a real-device PASS record. That status should remain explicit rather than being upgraded by inference.
-
-## The representation disagreement is useful
-
-The ARM polar experiment and x86/GPU Cartesian implementations should coexist in the notes because they expose the real compiler question:
+Polar form makes multiplication/division and roots structurally attractive:
 
 ```text
-Which representation is cheapest and most accurate for this operation graph
-on this target?
+(ρ₁, θ₁)(ρ₂, θ₂) = (ρ₁ρ₂, θ₁+θ₂)
+(ρ₁, θ₁)/(ρ₂, θ₂) = (ρ₁/ρ₂, θ₁−θ₂)
 ```
 
-Possible planner facts include:
+Cartesian form makes addition/subtraction and polynomial evaluation direct.
 
-```text
-coordinate_form: Cartesian | Polar
-precision: F16 | F32 | ...
-component_count
-argument ABI
-return ABI
-register class
-packing / vector width
-conversion cost
-operation mix
-range / phase behavior
-branch-cut obligations
-spill cost
-hardware evidence level
-```
-
-Then a backend can choose representation from workload and target evidence rather than baking one storage convention into the mathematical type.
-
-## Conversion should be explicit
-
-If a computation crosses representation families, record the conversion:
+Conversion is real numerical work:
 
 ```text
 Cartesian -> Polar
@@ -297,96 +272,85 @@ Polar -> Cartesian
     imag = magnitude sin(phase)
 ```
 
-Those are numerical operations with cost, accuracy, signed-zero, quadrant, zero-magnitude, and branch/phase conventions. A compiler must not treat them as free type casts.
+A later representation planner should therefore consider operation mix, conversion count, precision, exceptional-value semantics, phase conventions, register pressure, spilling, vector packing, and target instructions.
 
-This is also why the realification result in the type notes is a different issue. Realification changes the scalar field representation while preserving a complex structure `J`; Cartesian↔polar conversion changes coordinates *within each complex scalar*.
+## What the compiler should preserve long enough to exploit
 
-## What a future register-aware complex value should carry
+The useful lowering metadata is not simply `Complex = pair`.
 
-A useful lowering object is conceptually closer to:
-
-```text
-MachineComplex:
-    semantic_space
-    coordinate_form
-    scalar_width
-    component_locations
-    abi_class
-    conversion_provenance
-```
-
-For example:
+A machine-level complex value may need to retain:
 
 ```text
-ARMPolarF32:
-    coordinate_form = PolarTurns
-    scalar_width = F32
-    incoming = (r0,r1) for first value
-
-X86CartesianF32:
-    coordinate_form = Cartesian
-    scalar_width = F32
-    working_pair = (xmm0,xmm1)
+semantic complex identity
+coordinate form: Cartesian | Polar | other
+scalar width
+component order
+component locations / register class
+calling convention
+memory layout
+conversion provenance
+exceptional-value contract
+projective / holomorphic context when relevant
 ```
 
-These are backend representations, not new mathematical complex-number types.
+For register allocation, pair identity can matter even when the two components ultimately occupy separate scalar registers: keep/spill/reload decisions, scratch selection, vector packing, and partial-component uses should not need to rediscover that the values belong together.
 
-A register allocator should preserve pair identity long enough to make good decisions about:
+## Claims that are not currently justified
 
-- keeping both components live together;
-- spilling/reloading them coherently;
-- choosing scratch registers without unnecessary shuffles;
-- exploiting vector packing where profitable;
-- recognizing operations that only need one component;
-- avoiding gratuitous Cartesian↔polar round trips.
+Do not promote any of these beyond the evidence:
 
-## What not to claim yet
-
-Do not infer more than the current evidence shows:
-
-- the ARM branch does not yet have a general two-word complex return ABI;
-- the ARM branch does not yet prove a pair-aware global VFP register allocator;
-- x86 Cartesian SSE is the current complex/projective leader implementation, not proof that Cartesian must win on every target;
-- the shader `vec2` does not identify physical vendor registers;
-- portable `mediump` is not automatically exact binary16;
-- the PowerVR hardware gate remains separate from software shader validation;
-- none of these target layouts defines ℂ itself.
+- Thumb polar F32 is **not** the chosen general ARM complex representation; current policy calls it provisional/disposable.
+- Thumb has no proven global pair-aware VFP allocator and no general complex return ABI.
+- The x86 SSE pair is the current executable leader for the Idriç complex/projective subsystem, not a universal representation decision.
+- ICK AArch64 polar `_Complex` is real implemented compiler work, but it has explicit ABI and exceptional-value limits and is not the canonical Idriç representation.
+- A GLSL `vec2` is not evidence of a physical GPU register layout.
+- `mediump` is not automatically binary16.
+- shader compilation/link is not GPU execution.
+- none of these representations defines ℂ itself.
 
 ## Source trail
 
-### Android ARMv7 / polar experiment
+### Canonical semantics / policy
 
-- `isomorphisms/idric-arm-thumb`
-- branch `polar-complex-first`
-- revision `e0f23d1a5b3977f1c55da85b530049118cb4f7f6`
-- `examples/PolarComplex.idric`
-- `src/Backend/ARMThumb/Emit.idr`
-- `tests/arm/backend_selftest.S`
-- `Makefile`
+- `isomorphisms/Idric` PR #81 — complex/projective semantic boundary and shared F32 corpus
+- `isomorphisms/ai-ci` PR #79 — merged implementation hierarchy and fail-closed receipt policy
 
-### x86-64 Cartesian leader
+### x86-64 leader
 
-- `isomorphisms/idric-x86-aggressive-backend`
+- `isomorphisms/idric-x86-aggressive-backend` PR #22
 - branch `x86/complex-projective-leader`
-- revision `71322966574d2589bcf07ac012cea878595b887c`
-- `docs/complex-projective-x86-leader.md`
+- head `71322966574d2589bcf07ac012cea878595b887c`
 - `backend/complex_projective.py`
+
+### ARMv7 Thumb follower
+
+- `isomorphisms/idric-arm-thumb` executable base branch `polar-complex-first`
+- base head `e0f23d1a5b3977f1c55da85b530049118cb4f7f6`
+- `isomorphisms/idric-arm-thumb` PR #53 — current provisional/disposable follower status
+- follower head `cb08fd55dec00bfbc3a6020218a7a7d78cc63682`
+
+### AArch64 ICK/GCC
+
+- `isomorphisms/rhs` PR #1 — merged **Build ICK directly for AArch64**
+- implementation head `7458b3c29fe535eb7dda3b1c756b362cee5c889d`
+- merge `5fe6f6d1259b0b4ae9adf99d354e49e2a01afbf9`
+
+### Android application consumption
+
+- `isomorphismes/wegert` PR #13 — merged ICK arm64 complex-math integration with Cartesian fallbacks
+- `isomorphismes/wegert` PR #31 — open source-built ICK/APK qualification lane
 
 ### GLSL ES / GPU follower
 
-- `isomorphisms/idris-shader-backend`
+- `isomorphisms/idris-shader-backend` PR #36
 - branch `complex-projective/follower`
-- revision `4360f29d3bbdc09b4cc513e4a6be647f290ffede`
-- `docs/complex-projective-follower.md`
-- `src/Example/ComplexProjectiveFollower.idr`
+- head `4360f29d3bbdc09b4cc513e4a6be647f290ffede`
 
-### PowerVR precision/device work
+### Precision / target evidence
 
-- `isomorphisms/idris-shader-backend`
-- branch `target/powervr-ge8322-gles`
-- revision `4f807b8561bd4704c85ce63af01c277d74c93769`
-- `docs/float-semantics.md`
-- `docs/powervr-phone-acceptance.md`
+- `isomorphisms/idris-shader-backend`, `docs/float-semantics.md`
+- PowerVR target branch `target/powervr-ge8322-gles`
+- `isomorphisms/ai-ci` PR #45 and `isomorphismes/wegert` PR #29 for the staged Float16/shader-API integration boundary
 
 ## Related Strang notes
 
