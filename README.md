@@ -42,6 +42,8 @@ For every book:
 
 ## Cross-cutting notes
 
+- [High-dimensional rotations, reflections, and planning before lowering](notes/high-dimensional-rotations-reflections-and-planning.md) — Householder, two-reflection proper rotations, direct 2-plane rotations, serial and balanced-tree Givens factorizations, factor graphs, topology/cohomology constraints, CAS status, and a concrete first planner trace.
+
 The recurring subjects to extract across books are not just algorithms but numerical behavior:
 
 - conditioning versus algorithmic stability;
