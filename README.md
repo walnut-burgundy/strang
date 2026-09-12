@@ -26,6 +26,9 @@ For every book:
 ## Related notes
 
 - [Conditioning, scaling, and artificial range limits](notes/conditioning-scaling-and-range.md) — distinguish intrinsic conditioning from bad scaling, unstable algorithms, and inadequate numeric formats; directly applicable to viewport zoom.
+- [Geometry → conditioning → factorization choice](notes/geometry-conditioning-and-factorization-choice.md) — the small bridge from realification, orthogonal/reflection geometry, and projective scaling to conditioning and practical QR/LU/SVD choices.
+- [Type-directed numerical linear algebra](notes/type-directed-numerical-linear-algebra.md) — preserve named spaces, vector/covector roles, complex/projective structure, metrics, orientation, Hermitian structure, and numerical evidence long enough for a compiler or planner to use them.
+- [Complex values at the machine boundary](notes/complex-machine-representations.md) — evidence ledger for x86 Cartesian SSE pairs, provisional ARMv7 polar pairs, AArch64 ICK/GCC polar `_Complex`, Android consumption, GLSL `vec2`, precision policy, and the exact boundaries of what each implementation has proved.
 - [Paleologo numerical-methods books](notes/paleologo-numerical-methods-books.md) — identification of Cheney–Light, Trefethen–Bau, and Golub–Van Loan; why they were recommended; and the current link-versus-mirror copyright check.
 - [Public-preview summaries](notes/public-preview-summaries.md) — lawful author/publisher preview material for Cheney–Light, Trefethen–Bau, and Golub–Van Loan, summarized without mirroring copyrighted text.
 - [Trefethen–Bau numerical-linear-algebra notes](notes/trefethen-bau-numerical-linear-algebra.md)
